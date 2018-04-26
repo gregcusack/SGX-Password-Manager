@@ -23,6 +23,21 @@ typedef struct ms_encrypt_str_t {
 	size_t ms_len;
 } ms_encrypt_str_t;
 
+typedef struct ms_get_str_t {
+	uint8_t* ms_o_buf;
+	size_t ms_len;
+} ms_get_str_t;
+
+typedef struct ms_decrypt_str_t {
+	uint8_t* ms_buf;
+	size_t ms_len;
+} ms_decrypt_str_t;
+
+typedef struct ms_get_dec_str_t {
+	uint8_t* ms_buf;
+	size_t ms_len;
+} ms_get_dec_str_t;
+
 typedef struct ms_seal_t {
 	sgx_status_t ms_retval;
 	uint8_t* ms_plaintext;
@@ -75,6 +90,121 @@ static sgx_status_t SGX_CDECL sgx_encrypt_str(void* pms)
 	}
 
 	encrypt_str(_in_buf, _tmp_len);
+err:
+	if (_in_buf) free(_in_buf);
+
+	return status;
+}
+
+static sgx_status_t SGX_CDECL sgx_get_str(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_get_str_t));
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+	ms_get_str_t* ms = SGX_CAST(ms_get_str_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	uint8_t* _tmp_o_buf = ms->ms_o_buf;
+	size_t _tmp_len = ms->ms_len;
+	size_t _len_o_buf = _tmp_len;
+	uint8_t* _in_o_buf = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_o_buf, _len_o_buf);
+
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+
+	if (_tmp_o_buf != NULL && _len_o_buf != 0) {
+		if ((_in_o_buf = (uint8_t*)malloc(_len_o_buf)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_o_buf, 0, _len_o_buf);
+	}
+
+	get_str(_in_o_buf, _tmp_len);
+err:
+	if (_in_o_buf) {
+		memcpy(_tmp_o_buf, _in_o_buf, _len_o_buf);
+		free(_in_o_buf);
+	}
+
+	return status;
+}
+
+static sgx_status_t SGX_CDECL sgx_decrypt_str(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_decrypt_str_t));
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+	ms_decrypt_str_t* ms = SGX_CAST(ms_decrypt_str_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	uint8_t* _tmp_buf = ms->ms_buf;
+	size_t _tmp_len = ms->ms_len;
+	size_t _len_buf = _tmp_len;
+	uint8_t* _in_buf = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_buf, _len_buf);
+
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+
+	if (_tmp_buf != NULL && _len_buf != 0) {
+		_in_buf = (uint8_t*)malloc(_len_buf);
+		if (_in_buf == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_buf, _tmp_buf, _len_buf);
+	}
+
+	decrypt_str(_in_buf, _tmp_len);
+err:
+	if (_in_buf) free(_in_buf);
+
+	return status;
+}
+
+static sgx_status_t SGX_CDECL sgx_get_dec_str(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_get_dec_str_t));
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+	ms_get_dec_str_t* ms = SGX_CAST(ms_get_dec_str_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	uint8_t* _tmp_buf = ms->ms_buf;
+	size_t _tmp_len = ms->ms_len;
+	size_t _len_buf = _tmp_len;
+	uint8_t* _in_buf = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_buf, _len_buf);
+
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+
+	if (_tmp_buf != NULL && _len_buf != 0) {
+		if ((_in_buf = (uint8_t*)malloc(_len_buf)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_buf, 0, _len_buf);
+	}
+
+	get_dec_str(_in_buf, _tmp_len);
 err:
 	if (_in_buf) {
 		memcpy(_tmp_buf, _in_buf, _len_buf);
@@ -196,11 +326,14 @@ err:
 
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[3];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[6];
 } g_ecall_table = {
-	3,
+	6,
 	{
 		{(void*)(uintptr_t)sgx_encrypt_str, 0},
+		{(void*)(uintptr_t)sgx_get_str, 0},
+		{(void*)(uintptr_t)sgx_decrypt_str, 0},
+		{(void*)(uintptr_t)sgx_get_dec_str, 0},
 		{(void*)(uintptr_t)sgx_seal, 0},
 		{(void*)(uintptr_t)sgx_unseal, 0},
 	}
@@ -208,11 +341,11 @@ SGX_EXTERNC const struct {
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[1][3];
+	uint8_t entry_table[1][6];
 } g_dyn_entry_table = {
 	1,
 	{
-		{0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, },
 	}
 };
 

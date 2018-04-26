@@ -121,8 +121,6 @@ Enclave_Cpp_Files := Enclave/Enclave.cpp Enclave/Sealing/Sealing.cpp
 # Enclave_Include_Paths := -IInclude -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport
 Enclave_Include_Paths := -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport
 
-Enclave_C_Files := Enclave/aes.c Enclave/sha2.c Enclave/hmac_sha2.c
-
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++03 -nostdinc++
 Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
@@ -134,13 +132,10 @@ Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefau
 	# -Wl,--version-script=Enclave/Enclave.lds
 
 Enclave_Cpp_Objects := $(Enclave_Cpp_Files:.cpp=.o)
-Enclave_C_Objects := $(Enclave_C_Files:.c=.o)
 
 Enclave_Name := enclave.so
 Signed_Enclave_Name := enclave.signed.so
 Enclave_Config_File := Enclave/Enclave.config.xml
-
-################################################
 
 ifeq ($(SGX_MODE), HW)
 ifneq ($(SGX_DEBUG), 1)
@@ -196,32 +191,12 @@ Enclave/Enclave_t.c: $(SGX_EDGER8R) Enclave/Enclave.edl
 	@cd Enclave && $(SGX_EDGER8R) --trusted ../Enclave/Enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
 	@echo "GEN  =>  $@"
 
-Enclave/aes.c: Enclave/aes.c
-	@$(CC) -c $< -o $@
-	@echo "CC	<=	$<"
-Enclave/sha2.c: Enclave/sha2.c
-	@$(CC) -c $< -o $@
-	@echo "CC	<=	$<"
-Enclave/hmac_sha2.c: Enclave/hmac_sha2.c
-	@$(CC)-c $< -o $@
-	@echo "CC	<=	$<"
-
-
-
-#	@echo "GEN  =>  $@"
-#Enclave/hmac_sha2.c: $(SGX_EDGER8R)
-#	@echo "GEN  =>  $@"
-#Enclave/sha2.c: $(SGX_EDGER8R)
-#	@echo "GEN  =>  $@"
-
-
-
-#Enclave/Enclave_t.o: Enclave/Enclave_t.c
-#	@$(CC) $(Enclave_C_Flags) -c $< -o $@
-#	@echo "CC   <=  $<"
-Enclave/%.o: Enclave/%.c
+Enclave/Enclave_t.o: Enclave/Enclave_t.c
 	@$(CC) $(Enclave_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
+#Enclave/%.o: Enclave/%.c
+#	@$(CC) $(Enclave_C_Flags) -c $< -o $@
+#	@echo "CC   <=  $<"
 
 
 Enclave/%.o: Enclave/%.cpp

@@ -17,6 +17,9 @@ extern "C" {
 #endif
 
 void encrypt_str(char* buf, size_t len);
+void get_str(uint8_t* o_buf, size_t len);
+void decrypt_str(uint8_t* buf, size_t len);
+void get_dec_str(uint8_t* buf, size_t len);
 sgx_status_t seal(uint8_t* plaintext, size_t plaintext_len, sgx_sealed_data_t* sealed_data, size_t sealed_size);
 sgx_status_t unseal(sgx_sealed_data_t* sealed_data, size_t sealed_size, uint8_t* plaintext, uint32_t plaintext_len);
 
