@@ -19,10 +19,8 @@ extern "C" {
 
 void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_print, (const char* str));
 
-sgx_status_t encrypt_str(sgx_enclave_id_t eid, char* buf, size_t len);
-sgx_status_t get_str(sgx_enclave_id_t eid, uint8_t* o_buf, size_t len);
-sgx_status_t decrypt_str(sgx_enclave_id_t eid, uint8_t* buf, size_t len);
-sgx_status_t get_dec_str(sgx_enclave_id_t eid, uint8_t* buf, size_t len);
+sgx_status_t encrypt_str(sgx_enclave_id_t eid, uint8_t* in_buf, size_t in_len, uint8_t* out_buf, size_t out_len);
+sgx_status_t decrypt_str(sgx_enclave_id_t eid, uint8_t* in_buf, size_t in_len, uint8_t* out_buf, size_t out_len);
 sgx_status_t seal(sgx_enclave_id_t eid, sgx_status_t* retval, uint8_t* plaintext, size_t plaintext_len, sgx_sealed_data_t* sealed_data, size_t sealed_size);
 sgx_status_t unseal(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, uint8_t* plaintext, uint32_t plaintext_len);
 

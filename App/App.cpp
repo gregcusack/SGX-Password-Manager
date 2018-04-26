@@ -37,38 +37,25 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 		
-	char buffer_1[MAX_BUFF_LEN] = "abcdefghijklmnopqrstuvwxyz12345";	
-	int ptr;
-	int num = 4;
-	//char str_out[MAX_BUFF_LEN];
-	char str[MAX_BUFF_LEN] = "Hello World!";
+	uint8_t str[MAX_BUFF_LEN] = "Hello World!";
+	uint8_t cipher_str[CONCAT_LEN];
 	char mac[MAC_LEN];
-	sgx_status_t status = encrypt_str(global_eid, str, MAX_BUFF_LEN);
+	sgx_status_t status = encrypt_str(global_eid, str, MAX_BUFF_LEN, cipher_str, CONCAT_LEN);
 	if (status != SGX_SUCCESS) {
 		std::cout << "fail" << std::endl;
 	}
 
-	uint8_t o_buf[CONCAT_LEN];
-	status = get_str(global_eid, o_buf, CONCAT_LEN);
-	if (status != SGX_SUCCESS) {
-		std::cout << "fail getting str" << std::endl;
-	}
-	std::cout << "o_buf: " << o_buf << std::endl;
-	std::cout << "size o_buf: " << sizeof(o_buf) << std::endl;
-	
+	memset(str, 0, MAX_BUFF_LEN);
+	std::cout << "zeroed input str: " << str << std::endl;
+	std::cout << "encypted string: " << cipher_str << std::endl;
 
-	status = decrypt_str(global_eid, o_buf, CONCAT_LEN);
+	uint8_t decrypted_str[MAX_BUFF_LEN];
+	status = decrypt_str(global_eid, cipher_str, CONCAT_LEN, decrypted_str, MAX_BUFF_LEN);
 	if (status != SGX_SUCCESS) {
 		std::cout << "fail decrypting" << std::endl;
 	}
 
-	uint8_t out_str[MAX_BUFF_LEN];
-	status = get_dec_str(global_eid, out_str, MAX_BUFF_LEN);
-	if (status != SGX_SUCCESS) {
-		std::cout << "fail getting decrypted str" << std::endl;
-	}
-
-	std::cout << "decrypted string: " << out_str << std::endl;
+	std::cout << "decrypted string: " << decrypted_str << std::endl;
 	
 	return 0;	
 }

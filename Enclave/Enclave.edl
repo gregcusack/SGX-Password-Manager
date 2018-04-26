@@ -5,10 +5,16 @@ enclave {
         /* define ECALLs here. */
         /*public int encrypt(int val);*/
 		/*public void encrypt_str([in, out, size=len] char *buf, size_t len);*/
+
+        public void encrypt_str([in, size=in_len] uint8_t *in_buf, size_t in_len, [out, size=out_len] uint8_t *out_buf, size_t out_len);
+
+        public void decrypt_str([in, size=in_len] uint8_t *in_buf, size_t in_len, [out, size=out_len] uint8_t *out_buf, size_t out_len);
+        /*
         public void encrypt_str([in, size=len] char *buf, size_t len);
         public void get_str([out, size=len] uint8_t *o_buf, size_t len);
         public void decrypt_str([in, size=len] uint8_t *buf, size_t len);
         public void get_dec_str([out, size=len] uint8_t *buf, size_t len);
+        */
     };
 
     untrusted {

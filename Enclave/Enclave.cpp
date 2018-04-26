@@ -30,28 +30,14 @@ void gen_iv(unsigned char *_iv) {
 	}
 }
 
-
-/*
-int encrypt(int val) {
-	ocall_print("incrementing val...");
-	val++;
-	return val;
-}
-*/
-
-void encrypt_str(char *buf, size_t len) {
+void encrypt_str(uint8_t *in_buf, size_t in_len, uint8_t *out_buf, size_t out_len) {
 	ocall_print("encrypting string...");
-	//sgx_sha256_hash_t *p_hash;
-	//sgx_sha256_hash_t p_hash;
 	unsigned char iv[IV_SIZE];
 	gen_iv(iv);
-	
-	uint8_t o_buf[32];
-	sgx_aes_gcm_128bit_tag_t mac[16];
-	//sgx_status_t status = sgx_aes_ctr_encrypt(key, (const uint8_t*)buf, MAX_BUFF_LEN, iv, 128, o_buf);
-	//ocall_print("here");
-	
-	sgx_status_t status = sgx_rijndael128GCM_encrypt(key, (const uint8_t*)buf, MAX_BUFF_LEN, o_buf, iv, IV_SIZE, NULL, 0, mac);
+	uint8_t cipher_buf[MAX_BUFF_LEN];
+	sgx_aes_gcm_128bit_tag_t mac[MAC_SIZE];
+
+	sgx_status_t status = sgx_rijndael128GCM_encrypt(key, in_buf, MAX_BUFF_LEN, cipher_buf, iv, IV_SIZE, NULL, 0, mac);
 	//ocall_print("here1");
 	if (status != SGX_SUCCESS) {
 		ocall_print("Error, bad hash");
@@ -59,72 +45,28 @@ void encrypt_str(char *buf, size_t len) {
 		return;
 	}
 	
-	memcpy(&encStr[0], &o_buf[0], MAX_BUFF_LEN);
-	memcpy(&encStr[MAX_BUFF_LEN], &iv[0], IV_SIZE);
-	memcpy(&encStr[MAX_BUFF_LEN+IV_SIZE], &mac[0], MAC_SIZE);
-	
-	//strcpy(encStr, buf);
-	//strcpy(encStr, iv);
-	//strcpy(encStr, mac);
-	//memcpy(buf, o_buf, 32);
+	memcpy(&out_buf[0], cipher_buf, MAX_BUFF_LEN);
+	memcpy(&out_buf[MAX_BUFF_LEN], &iv[0], IV_SIZE);
+	memcpy(&out_buf[MAX_BUFF_LEN+IV_SIZE], &mac[0], MAC_SIZE);
 
-	/*
-	uint8_t p_hash[32];
-	sgx_status_t status = sgx_sha256_msg((const uint8_t*)buf, len, &p_hash);
-	memcpy(buf, p_hash, 32);
-	if (status != SGX_SUCCESS) {
-		ocall_print("Error, bad hash");
-		ocall_print((const char*)status);
-		return;
-	}
-	*/
-	//hmac_sha256(key, 32, buf, *size, master_key, 32);
-	//gen_iv(master_iv_out);
-
-	//hmac_xcrypt(cipher_pw, master_iv_out, master_key, *size);
-}
-
-void get_str(uint8_t *o_buf, size_t len) {
-	ocall_print("Getting str...");
-	memcpy(o_buf, encStr, CONCAT_LEN);
-
+	//memzero_explicit(in_buf, in_len);
+	//memset(in_buf, 0, in_len);
 
 }
 
-void decrypt_str(uint8_t* buf, size_t len) {
+void decrypt_str(uint8_t *in_buf, size_t in_len, uint8_t *out_buf, size_t out_len) {
 	ocall_print("decrypting string...");
 	uint8_t decrypt[MAX_BUFF_LEN];
 	uint8_t iv[IV_SIZE];
 	uint8_t mac[MAC_SIZE];
-	memcpy(decrypt, &buf[0], MAX_BUFF_LEN);
-	memcpy(iv, &buf[MAX_BUFF_LEN], IV_SIZE);
-	memcpy(mac, &buf[MAX_BUFF_LEN+IV_SIZE], MAC_SIZE);
+	memcpy(decrypt, &in_buf[0], MAX_BUFF_LEN);
+	memcpy(iv, &in_buf[MAX_BUFF_LEN], IV_SIZE);
+	memcpy(mac, &in_buf[MAX_BUFF_LEN+IV_SIZE], MAC_SIZE);
 
-	sgx_status_t status = sgx_rijndael128GCM_decrypt(key, decrypt, MAX_BUFF_LEN, &encStr[0], iv, IV_SIZE, NULL, 0, &mac);
+	sgx_status_t status = sgx_rijndael128GCM_decrypt(key, decrypt, MAX_BUFF_LEN, out_buf, iv, IV_SIZE, NULL, 0, &mac);
 	if (status != SGX_SUCCESS) {
 		ocall_print("Error, decrypt");
 		ocall_print((const char*)status);
 		return;
 	}
 }
-
-void get_dec_str(uint8_t* buf, size_t len) {
-	ocall_print("returning decrypted string...");
-	memcpy(buf, encStr, len);
-}
-
-/*
-void encrypt_str(char *buf, size_t len) {
-	ocall_print("lower casing string...");
-	char c;
-	int i=0;
-	while(buf[i]) {
-		if(buf[i] >= 65 && buf[i] <= 90) {
-			buf[i] = buf[i] + 32;
-		}
-		//enclave_str[i] = buf[i];
-		i++;
-	}
-	//ocall_print(enclave_str);
-}
-*/

@@ -19,24 +19,18 @@
 
 
 typedef struct ms_encrypt_str_t {
-	char* ms_buf;
-	size_t ms_len;
+	uint8_t* ms_in_buf;
+	size_t ms_in_len;
+	uint8_t* ms_out_buf;
+	size_t ms_out_len;
 } ms_encrypt_str_t;
 
-typedef struct ms_get_str_t {
-	uint8_t* ms_o_buf;
-	size_t ms_len;
-} ms_get_str_t;
-
 typedef struct ms_decrypt_str_t {
-	uint8_t* ms_buf;
-	size_t ms_len;
+	uint8_t* ms_in_buf;
+	size_t ms_in_len;
+	uint8_t* ms_out_buf;
+	size_t ms_out_len;
 } ms_decrypt_str_t;
-
-typedef struct ms_get_dec_str_t {
-	uint8_t* ms_buf;
-	size_t ms_len;
-} ms_get_dec_str_t;
 
 typedef struct ms_seal_t {
 	sgx_status_t ms_retval;
@@ -67,70 +61,47 @@ static sgx_status_t SGX_CDECL sgx_encrypt_str(void* pms)
 	sgx_lfence();
 	ms_encrypt_str_t* ms = SGX_CAST(ms_encrypt_str_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
-	char* _tmp_buf = ms->ms_buf;
-	size_t _tmp_len = ms->ms_len;
-	size_t _len_buf = _tmp_len;
-	char* _in_buf = NULL;
+	uint8_t* _tmp_in_buf = ms->ms_in_buf;
+	size_t _tmp_in_len = ms->ms_in_len;
+	size_t _len_in_buf = _tmp_in_len;
+	uint8_t* _in_in_buf = NULL;
+	uint8_t* _tmp_out_buf = ms->ms_out_buf;
+	size_t _tmp_out_len = ms->ms_out_len;
+	size_t _len_out_buf = _tmp_out_len;
+	uint8_t* _in_out_buf = NULL;
 
-	CHECK_UNIQUE_POINTER(_tmp_buf, _len_buf);
+	CHECK_UNIQUE_POINTER(_tmp_in_buf, _len_in_buf);
+	CHECK_UNIQUE_POINTER(_tmp_out_buf, _len_out_buf);
 
 	//
 	// fence after pointer checks
 	//
 	sgx_lfence();
 
-	if (_tmp_buf != NULL && _len_buf != 0) {
-		_in_buf = (char*)malloc(_len_buf);
-		if (_in_buf == NULL) {
+	if (_tmp_in_buf != NULL && _len_in_buf != 0) {
+		_in_in_buf = (uint8_t*)malloc(_len_in_buf);
+		if (_in_in_buf == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
 		}
 
-		memcpy(_in_buf, _tmp_buf, _len_buf);
+		memcpy(_in_in_buf, _tmp_in_buf, _len_in_buf);
 	}
-
-	encrypt_str(_in_buf, _tmp_len);
-err:
-	if (_in_buf) free(_in_buf);
-
-	return status;
-}
-
-static sgx_status_t SGX_CDECL sgx_get_str(void* pms)
-{
-	CHECK_REF_POINTER(pms, sizeof(ms_get_str_t));
-	//
-	// fence after pointer checks
-	//
-	sgx_lfence();
-	ms_get_str_t* ms = SGX_CAST(ms_get_str_t*, pms);
-	sgx_status_t status = SGX_SUCCESS;
-	uint8_t* _tmp_o_buf = ms->ms_o_buf;
-	size_t _tmp_len = ms->ms_len;
-	size_t _len_o_buf = _tmp_len;
-	uint8_t* _in_o_buf = NULL;
-
-	CHECK_UNIQUE_POINTER(_tmp_o_buf, _len_o_buf);
-
-	//
-	// fence after pointer checks
-	//
-	sgx_lfence();
-
-	if (_tmp_o_buf != NULL && _len_o_buf != 0) {
-		if ((_in_o_buf = (uint8_t*)malloc(_len_o_buf)) == NULL) {
+	if (_tmp_out_buf != NULL && _len_out_buf != 0) {
+		if ((_in_out_buf = (uint8_t*)malloc(_len_out_buf)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
 		}
 
-		memset((void*)_in_o_buf, 0, _len_o_buf);
+		memset((void*)_in_out_buf, 0, _len_out_buf);
 	}
 
-	get_str(_in_o_buf, _tmp_len);
+	encrypt_str(_in_in_buf, _tmp_in_len, _in_out_buf, _tmp_out_len);
 err:
-	if (_in_o_buf) {
-		memcpy(_tmp_o_buf, _in_o_buf, _len_o_buf);
-		free(_in_o_buf);
+	if (_in_in_buf) free(_in_in_buf);
+	if (_in_out_buf) {
+		memcpy(_tmp_out_buf, _in_out_buf, _len_out_buf);
+		free(_in_out_buf);
 	}
 
 	return status;
@@ -145,70 +116,47 @@ static sgx_status_t SGX_CDECL sgx_decrypt_str(void* pms)
 	sgx_lfence();
 	ms_decrypt_str_t* ms = SGX_CAST(ms_decrypt_str_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
-	uint8_t* _tmp_buf = ms->ms_buf;
-	size_t _tmp_len = ms->ms_len;
-	size_t _len_buf = _tmp_len;
-	uint8_t* _in_buf = NULL;
+	uint8_t* _tmp_in_buf = ms->ms_in_buf;
+	size_t _tmp_in_len = ms->ms_in_len;
+	size_t _len_in_buf = _tmp_in_len;
+	uint8_t* _in_in_buf = NULL;
+	uint8_t* _tmp_out_buf = ms->ms_out_buf;
+	size_t _tmp_out_len = ms->ms_out_len;
+	size_t _len_out_buf = _tmp_out_len;
+	uint8_t* _in_out_buf = NULL;
 
-	CHECK_UNIQUE_POINTER(_tmp_buf, _len_buf);
+	CHECK_UNIQUE_POINTER(_tmp_in_buf, _len_in_buf);
+	CHECK_UNIQUE_POINTER(_tmp_out_buf, _len_out_buf);
 
 	//
 	// fence after pointer checks
 	//
 	sgx_lfence();
 
-	if (_tmp_buf != NULL && _len_buf != 0) {
-		_in_buf = (uint8_t*)malloc(_len_buf);
-		if (_in_buf == NULL) {
+	if (_tmp_in_buf != NULL && _len_in_buf != 0) {
+		_in_in_buf = (uint8_t*)malloc(_len_in_buf);
+		if (_in_in_buf == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
 		}
 
-		memcpy(_in_buf, _tmp_buf, _len_buf);
+		memcpy(_in_in_buf, _tmp_in_buf, _len_in_buf);
 	}
-
-	decrypt_str(_in_buf, _tmp_len);
-err:
-	if (_in_buf) free(_in_buf);
-
-	return status;
-}
-
-static sgx_status_t SGX_CDECL sgx_get_dec_str(void* pms)
-{
-	CHECK_REF_POINTER(pms, sizeof(ms_get_dec_str_t));
-	//
-	// fence after pointer checks
-	//
-	sgx_lfence();
-	ms_get_dec_str_t* ms = SGX_CAST(ms_get_dec_str_t*, pms);
-	sgx_status_t status = SGX_SUCCESS;
-	uint8_t* _tmp_buf = ms->ms_buf;
-	size_t _tmp_len = ms->ms_len;
-	size_t _len_buf = _tmp_len;
-	uint8_t* _in_buf = NULL;
-
-	CHECK_UNIQUE_POINTER(_tmp_buf, _len_buf);
-
-	//
-	// fence after pointer checks
-	//
-	sgx_lfence();
-
-	if (_tmp_buf != NULL && _len_buf != 0) {
-		if ((_in_buf = (uint8_t*)malloc(_len_buf)) == NULL) {
+	if (_tmp_out_buf != NULL && _len_out_buf != 0) {
+		if ((_in_out_buf = (uint8_t*)malloc(_len_out_buf)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
 		}
 
-		memset((void*)_in_buf, 0, _len_buf);
+		memset((void*)_in_out_buf, 0, _len_out_buf);
 	}
 
-	get_dec_str(_in_buf, _tmp_len);
+	decrypt_str(_in_in_buf, _tmp_in_len, _in_out_buf, _tmp_out_len);
 err:
-	if (_in_buf) {
-		memcpy(_tmp_buf, _in_buf, _len_buf);
-		free(_in_buf);
+	if (_in_in_buf) free(_in_in_buf);
+	if (_in_out_buf) {
+		memcpy(_tmp_out_buf, _in_out_buf, _len_out_buf);
+		free(_in_out_buf);
 	}
 
 	return status;
@@ -326,14 +274,12 @@ err:
 
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[6];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[4];
 } g_ecall_table = {
-	6,
+	4,
 	{
 		{(void*)(uintptr_t)sgx_encrypt_str, 0},
-		{(void*)(uintptr_t)sgx_get_str, 0},
 		{(void*)(uintptr_t)sgx_decrypt_str, 0},
-		{(void*)(uintptr_t)sgx_get_dec_str, 0},
 		{(void*)(uintptr_t)sgx_seal, 0},
 		{(void*)(uintptr_t)sgx_unseal, 0},
 	}
@@ -341,11 +287,11 @@ SGX_EXTERNC const struct {
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[1][6];
+	uint8_t entry_table[1][4];
 } g_dyn_entry_table = {
 	1,
 	{
-		{0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, },
 	}
 };
 
