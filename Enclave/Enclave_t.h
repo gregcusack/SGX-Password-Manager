@@ -16,8 +16,8 @@
 extern "C" {
 #endif
 
-void encrypt_str(uint8_t* in_buf, size_t in_len, uint8_t* out_buf, size_t out_len);
-void decrypt_str(uint8_t* in_buf, size_t in_len, uint8_t* out_buf, size_t out_len);
+void create_user(uint8_t* create_pw, size_t pw_len, uint8_t* cipher_pword, size_t cipher_pword_len, uint8_t* iv, size_t iv_len, uint8_t* mac, size_t mac_len);
+void check_user(uint8_t* login_attempt, size_t pw_len, uint8_t* v_pword, size_t v_pword_len, uint8_t* iv, size_t iv_len, uint8_t* mac, size_t mac_len, uint8_t* found, size_t found_len);
 sgx_status_t seal(uint8_t* plaintext, size_t plaintext_len, sgx_sealed_data_t* sealed_data, size_t sealed_size);
 sgx_status_t unseal(sgx_sealed_data_t* sealed_data, size_t sealed_size, uint8_t* plaintext, uint32_t plaintext_len);
 

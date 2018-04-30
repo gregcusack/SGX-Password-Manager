@@ -1,6 +1,7 @@
 #define BUFF_SIZE 32
 #define MAX_ACCOUNTS 5
 #define IV_SIZE 12
+#define CONCAT_LEN 60
 #include <stdint.h>
 
 struct web_login { //32 bytes

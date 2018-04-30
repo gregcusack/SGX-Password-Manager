@@ -6,9 +6,18 @@ enclave {
         /*public int encrypt(int val);*/
 		/*public void encrypt_str([in, out, size=len] char *buf, size_t len);*/
 
+        public void create_user([in, size=pw_len] uint8_t *create_pw, size_t pw_len, [out, size=cipher_pword_len] uint8_t *cipher_pword, size_t cipher_pword_len, [out, size=iv_len] uint8_t *iv, size_t iv_len, [out, size=mac_len] uint8_t *mac, size_t mac_len);
+
+        public void check_user([in, size=pw_len] uint8_t *login_attempt, size_t pw_len, [in, size=v_pword_len] uint8_t *v_pword, size_t v_pword_len, [in, size=iv_len] uint8_t *iv, size_t iv_len, [in, size=mac_len] uint8_t *mac, size_t mac_len, [out, size=found_len] uint8_t *found, size_t found_len);
+
+
+
+
+        /*
         public void encrypt_str([in, size=in_len] uint8_t *in_buf, size_t in_len, [out, size=out_len] uint8_t *out_buf, size_t out_len);
 
         public void decrypt_str([in, size=in_len] uint8_t *in_buf, size_t in_len, [out, size=out_len] uint8_t *out_buf, size_t out_len);
+        */
         /*
         public void encrypt_str([in, size=len] char *buf, size_t len);
         public void get_str([out, size=len] uint8_t *o_buf, size_t len);

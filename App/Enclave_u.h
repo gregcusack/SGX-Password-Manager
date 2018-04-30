@@ -19,8 +19,8 @@ extern "C" {
 
 void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_print, (const char* str));
 
-sgx_status_t encrypt_str(sgx_enclave_id_t eid, uint8_t* in_buf, size_t in_len, uint8_t* out_buf, size_t out_len);
-sgx_status_t decrypt_str(sgx_enclave_id_t eid, uint8_t* in_buf, size_t in_len, uint8_t* out_buf, size_t out_len);
+sgx_status_t create_user(sgx_enclave_id_t eid, uint8_t* create_pw, size_t pw_len, uint8_t* cipher_pword, size_t cipher_pword_len, uint8_t* iv, size_t iv_len, uint8_t* mac, size_t mac_len);
+sgx_status_t check_user(sgx_enclave_id_t eid, uint8_t* login_attempt, size_t pw_len, uint8_t* v_pword, size_t v_pword_len, uint8_t* iv, size_t iv_len, uint8_t* mac, size_t mac_len, uint8_t* found, size_t found_len);
 sgx_status_t seal(sgx_enclave_id_t eid, sgx_status_t* retval, uint8_t* plaintext, size_t plaintext_len, sgx_sealed_data_t* sealed_data, size_t sealed_size);
 sgx_status_t unseal(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, uint8_t* plaintext, uint32_t plaintext_len);
 
