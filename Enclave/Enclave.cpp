@@ -29,7 +29,7 @@ void gen_iv(unsigned char *_iv) {
 void create_user(uint8_t *create_pw, size_t pw_len, 
 	uint8_t *cipher_pword, size_t cipher_pword_len,
 	uint8_t *iv, size_t iv_len, uint8_t *mac, size_t mac_len) {
-	ocall_print("Creating user...");
+	//ocall_print("Creating user...");
 
 	uint8_t m_iv[iv_len];
 	sgx_aes_gcm_128bit_tag_t master_mac[MAC_SIZE];
@@ -42,7 +42,7 @@ void create_user(uint8_t *create_pw, size_t pw_len,
 	sgx_status_t status = sgx_rijndael128GCM_encrypt(key, create_pw, pw_len, cipher_pword, m_iv, IV_SIZE, NULL, 0, master_mac);
 	if (status != SGX_SUCCESS) {
 		ocall_print("Error, bad encrypt in create_user()");
-		ocall_print((const char*)status);
+		//ocall_print((const char*)status);
 		return;
 	}
 	memcpy(iv, m_iv, iv_len);
@@ -56,7 +56,7 @@ void check_user(uint8_t *login_attempt, size_t pw_len,
 	uint8_t *iv, size_t iv_len, 
 	uint8_t *mac, size_t mac_len,
 	uint8_t *found, size_t found_len) {
-	ocall_print("Checking user...");
+	//ocall_print("Checking user...");
 	
 	uint8_t tmp[pw_len];
 	sgx_aes_gcm_128bit_tag_t tmp_mac[mac_len];
@@ -86,7 +86,7 @@ void encrypt_credentials(uint8_t *create_pw, size_t buf_len,
 	uint8_t *iv_out, size_t iv_len, uint8_t *web_mac,
 	uint8_t *uname_mac, uint8_t *pw_mac, size_t mac_len) {
 
-	ocall_print("encrypting credentials...");
+	//ocall_print("encrypting credentials...");
 
 	uint8_t iv_tmp[iv_len];
 	//uint8_t tmp_buf[buf_len];
@@ -141,22 +141,54 @@ void check_return_creds(uint8_t *create_pw, size_t buf_len,
 	size_t mac_len, uint8_t *dec_web, uint8_t *dec_uname, 
 	uint8_t *dec_pw, uint8_t *found, size_t found_len) {
 
-	ocall_print("checking creds...");
+	//ocall_print("checking creds...");
 
 	sgx_aes_gcm_128bit_tag_t tmp_mac[mac_len];
-	uint8_t decrypted_web[buf_len];
+	//uint8_t decrypted_web[buf_len];
 	memcpy(tmp_mac, web_mac, mac_len);
 	//tmp_mac[mac_len-1] = '\0';
 
-	sgx_status_t status = sgx_rijndael128GCM_decrypt(key, v_web, buf_len, decrypted_web, iv, iv_len, NULL, 0, tmp_mac);
+	sgx_status_t status = sgx_rijndael128GCM_decrypt(key, v_web, buf_len, dec_web, iv, iv_len, NULL, 0, tmp_mac);
 	if (status != SGX_SUCCESS) {
 		ocall_print("2: Error, encrypt check_return_creds()");
 		//ocall_print((const char*)status);
 		*found = 0x00;
 		return;
 	}
+	unsigned int i;
+	for(i=0; i < buf_len; i++) {
+		if(tmp_name[i] != dec_web[i]) {
+			*found = 0x00;
+			return;
+		}
+	}
 	*found = 0x01;
-	ocall_print((const char*)decrypted_web);
+	//ocall_print((const char*)dec_web);
+
+	memcpy(tmp_mac, uname_mac, mac_len);
+	status = sgx_rijndael128GCM_decrypt(key, v_uname, buf_len, dec_uname, iv, iv_len, NULL, 0, tmp_mac);
+	if (status != SGX_SUCCESS) {
+		ocall_print("Error: decrypt uname");
+		//ocall_print((const char*)status);
+		return;
+	}
+
+	memcpy(tmp_mac, pw_mac, mac_len);
+	status = sgx_rijndael128GCM_decrypt(key, v_pw, buf_len, dec_pw, iv, iv_len, NULL, 0, tmp_mac);
+	if (status != SGX_SUCCESS) {
+		ocall_print("Error: decrypt pw");
+		//ocall_print((const char*)status);
+		return;
+	}
+
+/*
+	sgx_status_t status = sgx_rijndael128GCM_decrypt(key, v_web, buf_len, decrypted_web, iv, iv_len, NULL, 0, tmp_mac);
+	if (status != SGX_SUCCESS) {
+		ocall_print("2: Error, encrypt check_return_creds()");
+		//ocall_print((const char*)status);
+		return;
+	}
+*/
 /*
 	uint8_t enc_tmp[buf_len];
 	sgx_status_t status = sgx_rijndael128GCM_encrypt(key, tmp_name, buf_len, enc_tmp, iv, iv_len, NULL, 0, tmp_mac);

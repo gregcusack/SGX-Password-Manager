@@ -28,7 +28,7 @@
 #define MAC_LEN 16
 #define WEB_MAC_LEN 16
 
-#define ITERATIONS 1
+#define ITERATIONS 25
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -63,7 +63,7 @@ bool read_vault(vault *vault) {
 }
 
 bool write_vault(vault *vault) {
-	std::cout << "accounts in vault: " << vault->num_accounts << std::endl;
+	//std::cout << "accounts in vault: " << vault->num_accounts << std::endl;
 	FILE *f = fopen("test.dat", "w+");
 	if(f == NULL) {
 		std::cerr << "Error in file open (write_vault())" << std::endl;
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
 	double create_time, reat_time;
 	std::cout << "PASSWORD_SIZE,ADD_TIME,GET_TIME" << std::endl;
 	int i,k,itr;
-	for(k = 24; k < MAX_BUFF_LEN; k+=4) {
+	for(k = 4; k < MAX_BUFF_LEN; k+=4) {
 		for(itr = 0; itr < ITERATIONS; itr++) {
 			memset(current_web, 0, MAX_BUFF_LEN);
 			memset(tmp_name, 0, MAX_BUFF_LEN);
@@ -173,11 +173,12 @@ int main(int argc, char** argv) {
 
 			bool success;
 			uint8_t cred_found[1];
+			cred_found[0] = 0x00;
 			if(vault.num_accounts > MAX_ACCOUNTS) {
 				std::cerr << "MAX_ACCOUNTS LIMIT REACHED!" << std::endl;
 				exit(1);
 			}
-			std::cout << "here" << std::endl;
+			//std::cout << "here" << std::endl;
 			//TODO: BEGIN CLOCK HERE
 			encrypt_credentials(global_eid, create_pw, MAX_BUFF_LEN,
 				current_web, current_user, current_pw,
@@ -204,13 +205,18 @@ int main(int argc, char** argv) {
 					usr_ret.credentials.a_uname,
 					usr_ret.credentials.a_pword,
 					cred_found, sizeof(cred_found));
+				std::cout << "i: " << i << std::endl;
+				if(cred_found) {
+					break;
+				}
 			}
 			//std::cout << cred_found << std::endl;
 			if(!cred_found) {
 				std::cerr << "ERROR: Data not found!" << std::endl;
 				exit(1);
 			}
-			std::cout << "GOT CREDS!" << std::endl;
+			std::cout << "k: " << k << std::endl;
+			//std::cout << "GOT CREDS!" << std::endl;
 			//std::cout << k << "," << crea
 
 
