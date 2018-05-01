@@ -1,5 +1,5 @@
-#define BUFF_SIZE 32
-#define MAX_ACCOUNTS 700
+#define BUFF_SIZE 256
+#define MAX_ACCOUNTS 6325
 #define IV_SIZE 12
 #define MAC_LEN 16
 

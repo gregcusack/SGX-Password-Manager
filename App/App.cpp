@@ -13,7 +13,7 @@
 #include "vault.h"
 #endif
 
-#define MAX_BUFF_LEN 32
+#define MAX_BUFF_LEN 256
 #define MAC_LEN 16
 
 #define ITERATIONS 25
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 	double create_time, read_time;
 	std::cout << "PASSWORD_SIZE,ADD_TIME,GET_TIME" << std::endl;
 	int i,k,itr;
-	for(k = 4; k < MAX_BUFF_LEN; k+=1) {
+	for(k = 4; k < MAX_BUFF_LEN; k+=4) {
 		for(itr = 0; itr < ITERATIONS; itr++) {
 			memset(current_web, 0, MAX_BUFF_LEN);
 			memset(tmp_name, 0, MAX_BUFF_LEN);
@@ -188,7 +188,6 @@ int main(int argc, char** argv) {
 					usr_ret.credentials.a_uname,
 					usr_ret.credentials.a_pword,
 					cred_found, sizeof(cred_found));
-
 				if(cred_found[0] == 0x01) {
 					break;
 				}
