@@ -33,12 +33,12 @@ void create_user(uint8_t *create_pw, size_t pw_len,
 
 	uint8_t m_iv[iv_len];
 	sgx_aes_gcm_128bit_tag_t master_mac[MAC_SIZE];
-	create_pw[pw_len-1] = '\0';
-	m_iv[iv_len-1] = '\0';
+	//create_pw[pw_len-1] = '\0';
+	//m_iv[iv_len-1] = '\0';
 
 	//TODO: HMAC key
 	gen_iv(m_iv);
-	m_iv[iv_len-1] = '\0';
+	//m_iv[iv_len-1] = '\0';
 	sgx_status_t status = sgx_rijndael128GCM_encrypt(key, create_pw, pw_len, cipher_pword, m_iv, IV_SIZE, NULL, 0, master_mac);
 	if (status != SGX_SUCCESS) {
 		ocall_print("Error, bad encrypt in create_user()");
@@ -47,7 +47,7 @@ void create_user(uint8_t *create_pw, size_t pw_len,
 	}
 	memcpy(iv, m_iv, iv_len);
 	memcpy(mac, master_mac, mac_len);
-	mac[mac_len-1] = '\0';
+	//mac[mac_len-1] = '\0';
 	//iv[iv_len-1] = '\0';
 }
 
@@ -71,7 +71,7 @@ void check_user(uint8_t *login_attempt, size_t pw_len,
 	uint8_t mac_holder[mac_len];
 	memcpy(mac_holder, tmp_mac, mac_len);
 	size_t i;
-	for(i=0; i < mac_len-1; i++) {
+	for(i=0; i < mac_len; i++) {
 		if(mac[i] != mac_holder[i]) {
 			*found = 0x00;
 			return;
@@ -159,9 +159,11 @@ void check_return_creds(uint8_t *create_pw, size_t buf_len,
 	for(i=0; i < buf_len; i++) {
 		if(tmp_name[i] != dec_web[i]) {
 			*found = 0x00;
+			//ocall_print("here");
 			return;
 		}
 	}
+	//ocall_print("found right web cred!");
 	*found = 0x01;
 	//ocall_print((const char*)dec_web);
 

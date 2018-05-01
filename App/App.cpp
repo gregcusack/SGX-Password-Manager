@@ -26,7 +26,6 @@
 #define MAX_BUFF_LEN 32
 #define CONCAT_LEN 60
 #define MAC_LEN 16
-#define WEB_MAC_LEN 16
 
 #define ITERATIONS 25
 
@@ -146,6 +145,7 @@ int main(int argc, char** argv) {
 	}
 
 	/***** AFTER LOGIN *****/
+	clock_t begin, end;
 	uint8_t current_web[MAX_BUFF_LEN];
 	uint8_t current_user[MAX_BUFF_LEN];
 	uint8_t current_pw[MAX_BUFF_LEN];
@@ -153,10 +153,10 @@ int main(int argc, char** argv) {
 	website enc_usr_cred;
 	website usr_ret;
 	unsigned int loop_count = 0;
-	double create_time, reat_time;
+	double create_time, read_time;
 	std::cout << "PASSWORD_SIZE,ADD_TIME,GET_TIME" << std::endl;
 	int i,k,itr;
-	for(k = 4; k < MAX_BUFF_LEN; k+=4) {
+	for(k = 4; k < MAX_BUFF_LEN; k+=1) {
 		for(itr = 0; itr < ITERATIONS; itr++) {
 			memset(current_web, 0, MAX_BUFF_LEN);
 			memset(tmp_name, 0, MAX_BUFF_LEN);
@@ -167,9 +167,9 @@ int main(int argc, char** argv) {
 			sprintf((char*)current_user, "test%d_%d", itr, k);
 			gen_random_password(current_pw, k);
 
-			current_web[MAX_BUFF_LEN-1] = '\0';
-			tmp_name[MAX_BUFF_LEN-1] = '\0';
-			current_user[MAX_BUFF_LEN-1] = '\0';
+			//current_web[MAX_BUFF_LEN-1] = '\0';
+			//tmp_name[MAX_BUFF_LEN-1] = '\0';
+			//current_user[MAX_BUFF_LEN-1] = '\0';
 
 			bool success;
 			uint8_t cred_found[1];
@@ -178,8 +178,9 @@ int main(int argc, char** argv) {
 				std::cerr << "MAX_ACCOUNTS LIMIT REACHED!" << std::endl;
 				exit(1);
 			}
-			//std::cout << "here" << std::endl;
+			//std::cout << "current web to store: " << current_web << std::endl;
 			//TODO: BEGIN CLOCK HERE
+			begin = clock();
 			encrypt_credentials(global_eid, create_pw, MAX_BUFF_LEN,
 				current_web, current_user, current_pw,
 				enc_usr_cred.web_name, enc_usr_cred.credentials.a_uname, 
@@ -189,9 +190,12 @@ int main(int argc, char** argv) {
 			vault.accounts[vault.num_accounts] = enc_usr_cred;
 			vault.num_accounts++;
 			write_vault(&vault);
-
+			end = clock();
+			create_time = ((double)end-begin)/CLOCKS_PER_SEC;
+			//std::cout << "num accnts: " << vault.num_accounts << std::endl;
 			/***** CHECK AND RETURN CREDENTIALS *****/
 			unsigned int i;
+			begin = clock();
 			for(i = 0; i < vault.num_accounts; i++) {
 				check_return_creds(global_eid, create_pw, MAX_BUFF_LEN,
 					vault.accounts[i].web_name,
@@ -205,17 +209,24 @@ int main(int argc, char** argv) {
 					usr_ret.credentials.a_uname,
 					usr_ret.credentials.a_pword,
 					cred_found, sizeof(cred_found));
-				std::cout << "i: " << i << std::endl;
-				if(cred_found) {
+
+				//std::cout << "web_name: " << usr_ret.web_name << std::endl;
+				
+				//std::cout << "i: " << i << std::endl;
+				if(cred_found[0] == 0x01) {
+					//std::cout << "cred found: " << cred_found[0] << std::endl;
 					break;
 				}
 			}
+			end = clock();
+			read_time = ((double)end-begin)/CLOCKS_PER_SEC;
 			//std::cout << cred_found << std::endl;
-			if(!cred_found) {
+			if(cred_found[0] == 0x00) {
 				std::cerr << "ERROR: Data not found!" << std::endl;
 				exit(1);
 			}
-			std::cout << "k: " << k << std::endl;
+			std::cout << k << "," << create_time << "," << read_time << std::endl;
+			//std::cout << "k: " << k << std::endl;
 			//std::cout << "GOT CREDS!" << std::endl;
 			//std::cout << k << "," << crea
 
