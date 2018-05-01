@@ -54,7 +54,6 @@ typedef struct ms_encrypt_credentials_t {
 	uint8_t* ms_iv_out;
 	size_t ms_iv_len;
 	uint8_t* ms_web_mac;
-	size_t ms_web_mac_len;
 	uint8_t* ms_uname_mac;
 	uint8_t* ms_pw_mac;
 	size_t ms_mac_len;
@@ -70,7 +69,6 @@ typedef struct ms_check_return_creds_t {
 	size_t ms_iv_len;
 	uint8_t* ms_tmp_name;
 	uint8_t* ms_web_mac;
-	size_t ms_web_mac_len;
 	uint8_t* ms_uname_mac;
 	uint8_t* ms_pw_mac;
 	size_t ms_mac_len;
@@ -326,11 +324,10 @@ static sgx_status_t SGX_CDECL sgx_encrypt_credentials(void* pms)
 	size_t _len_iv_out = _tmp_iv_len;
 	uint8_t* _in_iv_out = NULL;
 	uint8_t* _tmp_web_mac = ms->ms_web_mac;
-	size_t _tmp_web_mac_len = ms->ms_web_mac_len;
-	size_t _len_web_mac = _tmp_web_mac_len;
+	size_t _tmp_mac_len = ms->ms_mac_len;
+	size_t _len_web_mac = _tmp_mac_len;
 	uint8_t* _in_web_mac = NULL;
 	uint8_t* _tmp_uname_mac = ms->ms_uname_mac;
-	size_t _tmp_mac_len = ms->ms_mac_len;
 	size_t _len_uname_mac = _tmp_mac_len;
 	uint8_t* _in_uname_mac = NULL;
 	uint8_t* _tmp_pw_mac = ms->ms_pw_mac;
@@ -447,7 +444,7 @@ static sgx_status_t SGX_CDECL sgx_encrypt_credentials(void* pms)
 		memset((void*)_in_pw_mac, 0, _len_pw_mac);
 	}
 
-	encrypt_credentials(_in_create_pw, _tmp_buf_len, _in_cur_web, _in_cur_usr, _in_cur_pw, _in_enc_web, _in_enc_uname, _in_enc_pw, _in_iv_out, _tmp_iv_len, _in_web_mac, _tmp_web_mac_len, _in_uname_mac, _in_pw_mac, _tmp_mac_len);
+	encrypt_credentials(_in_create_pw, _tmp_buf_len, _in_cur_web, _in_cur_usr, _in_cur_pw, _in_enc_web, _in_enc_uname, _in_enc_pw, _in_iv_out, _tmp_iv_len, _in_web_mac, _in_uname_mac, _in_pw_mac, _tmp_mac_len);
 err:
 	if (_in_create_pw) free(_in_create_pw);
 	if (_in_cur_web) free(_in_cur_web);
@@ -515,11 +512,10 @@ static sgx_status_t SGX_CDECL sgx_check_return_creds(void* pms)
 	size_t _len_tmp_name = _tmp_buf_len;
 	uint8_t* _in_tmp_name = NULL;
 	uint8_t* _tmp_web_mac = ms->ms_web_mac;
-	size_t _tmp_web_mac_len = ms->ms_web_mac_len;
-	size_t _len_web_mac = _tmp_web_mac_len;
+	size_t _tmp_mac_len = ms->ms_mac_len;
+	size_t _len_web_mac = _tmp_mac_len;
 	uint8_t* _in_web_mac = NULL;
 	uint8_t* _tmp_uname_mac = ms->ms_uname_mac;
-	size_t _tmp_mac_len = ms->ms_mac_len;
 	size_t _len_uname_mac = _tmp_mac_len;
 	uint8_t* _in_uname_mac = NULL;
 	uint8_t* _tmp_pw_mac = ms->ms_pw_mac;
@@ -672,7 +668,7 @@ static sgx_status_t SGX_CDECL sgx_check_return_creds(void* pms)
 		memset((void*)_in_found, 0, _len_found);
 	}
 
-	check_return_creds(_in_create_pw, _tmp_buf_len, _in_v_web, _in_v_uname, _in_v_pw, _in_iv, _tmp_iv_len, _in_tmp_name, _in_web_mac, _tmp_web_mac_len, _in_uname_mac, _in_pw_mac, _tmp_mac_len, _in_dec_web, _in_dec_uname, _in_dec_pw, _in_found, _tmp_found_len);
+	check_return_creds(_in_create_pw, _tmp_buf_len, _in_v_web, _in_v_uname, _in_v_pw, _in_iv, _tmp_iv_len, _in_tmp_name, _in_web_mac, _in_uname_mac, _in_pw_mac, _tmp_mac_len, _in_dec_web, _in_dec_uname, _in_dec_pw, _in_found, _tmp_found_len);
 err:
 	if (_in_create_pw) free(_in_create_pw);
 	if (_in_v_web) free(_in_v_web);

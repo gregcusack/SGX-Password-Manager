@@ -37,7 +37,6 @@ typedef struct ms_encrypt_credentials_t {
 	uint8_t* ms_iv_out;
 	size_t ms_iv_len;
 	uint8_t* ms_web_mac;
-	size_t ms_web_mac_len;
 	uint8_t* ms_uname_mac;
 	uint8_t* ms_pw_mac;
 	size_t ms_mac_len;
@@ -53,7 +52,6 @@ typedef struct ms_check_return_creds_t {
 	size_t ms_iv_len;
 	uint8_t* ms_tmp_name;
 	uint8_t* ms_web_mac;
-	size_t ms_web_mac_len;
 	uint8_t* ms_uname_mac;
 	uint8_t* ms_pw_mac;
 	size_t ms_mac_len;
@@ -135,7 +133,7 @@ sgx_status_t check_user(sgx_enclave_id_t eid, uint8_t* login_attempt, size_t pw_
 	return status;
 }
 
-sgx_status_t encrypt_credentials(sgx_enclave_id_t eid, uint8_t* create_pw, size_t buf_len, uint8_t* cur_web, uint8_t* cur_usr, uint8_t* cur_pw, uint8_t* enc_web, uint8_t* enc_uname, uint8_t* enc_pw, uint8_t* iv_out, size_t iv_len, uint8_t* web_mac, size_t web_mac_len, uint8_t* uname_mac, uint8_t* pw_mac, size_t mac_len)
+sgx_status_t encrypt_credentials(sgx_enclave_id_t eid, uint8_t* create_pw, size_t buf_len, uint8_t* cur_web, uint8_t* cur_usr, uint8_t* cur_pw, uint8_t* enc_web, uint8_t* enc_uname, uint8_t* enc_pw, uint8_t* iv_out, size_t iv_len, uint8_t* web_mac, uint8_t* uname_mac, uint8_t* pw_mac, size_t mac_len)
 {
 	sgx_status_t status;
 	ms_encrypt_credentials_t ms;
@@ -150,7 +148,6 @@ sgx_status_t encrypt_credentials(sgx_enclave_id_t eid, uint8_t* create_pw, size_
 	ms.ms_iv_out = iv_out;
 	ms.ms_iv_len = iv_len;
 	ms.ms_web_mac = web_mac;
-	ms.ms_web_mac_len = web_mac_len;
 	ms.ms_uname_mac = uname_mac;
 	ms.ms_pw_mac = pw_mac;
 	ms.ms_mac_len = mac_len;
@@ -158,7 +155,7 @@ sgx_status_t encrypt_credentials(sgx_enclave_id_t eid, uint8_t* create_pw, size_
 	return status;
 }
 
-sgx_status_t check_return_creds(sgx_enclave_id_t eid, uint8_t* create_pw, size_t buf_len, uint8_t* v_web, uint8_t* v_uname, uint8_t* v_pw, uint8_t* iv, size_t iv_len, uint8_t* tmp_name, uint8_t* web_mac, size_t web_mac_len, uint8_t* uname_mac, uint8_t* pw_mac, size_t mac_len, uint8_t* dec_web, uint8_t* dec_uname, uint8_t* dec_pw, uint8_t* found, size_t found_len)
+sgx_status_t check_return_creds(sgx_enclave_id_t eid, uint8_t* create_pw, size_t buf_len, uint8_t* v_web, uint8_t* v_uname, uint8_t* v_pw, uint8_t* iv, size_t iv_len, uint8_t* tmp_name, uint8_t* web_mac, uint8_t* uname_mac, uint8_t* pw_mac, size_t mac_len, uint8_t* dec_web, uint8_t* dec_uname, uint8_t* dec_pw, uint8_t* found, size_t found_len)
 {
 	sgx_status_t status;
 	ms_check_return_creds_t ms;
@@ -171,7 +168,6 @@ sgx_status_t check_return_creds(sgx_enclave_id_t eid, uint8_t* create_pw, size_t
 	ms.ms_iv_len = iv_len;
 	ms.ms_tmp_name = tmp_name;
 	ms.ms_web_mac = web_mac;
-	ms.ms_web_mac_len = web_mac_len;
 	ms.ms_uname_mac = uname_mac;
 	ms.ms_pw_mac = pw_mac;
 	ms.ms_mac_len = mac_len;

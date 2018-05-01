@@ -26,7 +26,7 @@
 #define MAX_BUFF_LEN 32
 #define CONCAT_LEN 60
 #define MAC_LEN 16
-#define WEB_MAC_LEN 17
+#define WEB_MAC_LEN 16
 
 #define ITERATIONS 1
 
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
 	double create_time, reat_time;
 	std::cout << "PASSWORD_SIZE,ADD_TIME,GET_TIME" << std::endl;
 	int i,k,itr;
-	for(k = 28; k < MAX_BUFF_LEN; k+=4) {
+	for(k = 24; k < MAX_BUFF_LEN; k+=4) {
 		for(itr = 0; itr < ITERATIONS; itr++) {
 			memset(current_web, 0, MAX_BUFF_LEN);
 			memset(tmp_name, 0, MAX_BUFF_LEN);
@@ -172,8 +172,8 @@ int main(int argc, char** argv) {
 			current_user[MAX_BUFF_LEN-1] = '\0';
 
 			bool success;
-			uint8_t cred_found[] = {0};
-			if(vault.num_accounts >= MAX_ACCOUNTS) {
+			uint8_t cred_found[1];
+			if(vault.num_accounts > MAX_ACCOUNTS) {
 				std::cerr << "MAX_ACCOUNTS LIMIT REACHED!" << std::endl;
 				exit(1);
 			}
@@ -183,21 +183,12 @@ int main(int argc, char** argv) {
 				current_web, current_user, current_pw,
 				enc_usr_cred.web_name, enc_usr_cred.credentials.a_uname, 
 				enc_usr_cred.credentials.a_pword, enc_usr_cred.web_iv, IV_SIZE,
-				enc_usr_cred.web_mac, WEB_MAC_LEN, enc_usr_cred.credentials.uname_mac, 
+				enc_usr_cred.web_mac, enc_usr_cred.credentials.uname_mac, 
 				enc_usr_cred.credentials.pw_mac, MAC_LEN);
 			vault.accounts[vault.num_accounts] = enc_usr_cred;
 			vault.num_accounts++;
 			write_vault(&vault);
-/*
-			std::cout << "cur_web: " << current_web << std::endl;
-			std::cout << "cur_user: " << current_user << std::endl;
-			std::cout << "cur_pw: " << current_pw << std::endl;
 
-			std::cout << "v_web: " << vault.accounts[0].web_name << std::endl;
-			std::cout << "enc_web: " << enc_usr_cred.web_name << std::endl;
-			std::cout << "v_iv: " << vault.accounts[0].web_iv << std::endl;
-			//std::cout << "iv: " << enc_usr_cred.web_iv << std::endl;
-*/
 			/***** CHECK AND RETURN CREDENTIALS *****/
 			unsigned int i;
 			for(i = 0; i < vault.num_accounts; i++) {
@@ -206,14 +197,21 @@ int main(int argc, char** argv) {
 					vault.accounts[i].credentials.a_uname, 
 					vault.accounts[i].credentials.a_pword,
 					vault.accounts[i].web_iv, IV_SIZE, tmp_name,
-					vault.accounts[i].web_mac, WEB_MAC_LEN,
+					vault.accounts[i].web_mac,
 					vault.accounts[i].credentials.uname_mac,
 					vault.accounts[i].credentials.pw_mac,
 					MAC_LEN, usr_ret.web_name,
 					usr_ret.credentials.a_uname,
 					usr_ret.credentials.a_pword,
-					found, sizeof(found));
+					cred_found, sizeof(cred_found));
 			}
+			//std::cout << cred_found << std::endl;
+			if(!cred_found) {
+				std::cerr << "ERROR: Data not found!" << std::endl;
+				exit(1);
+			}
+			std::cout << "GOT CREDS!" << std::endl;
+			//std::cout << k << "," << crea
 
 
 		}
