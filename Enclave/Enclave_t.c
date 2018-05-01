@@ -42,6 +42,45 @@ typedef struct ms_check_user_t {
 	size_t ms_found_len;
 } ms_check_user_t;
 
+typedef struct ms_encrypt_credentials_t {
+	uint8_t* ms_create_pw;
+	size_t ms_buf_len;
+	uint8_t* ms_cur_web;
+	uint8_t* ms_cur_usr;
+	uint8_t* ms_cur_pw;
+	uint8_t* ms_enc_web;
+	uint8_t* ms_enc_uname;
+	uint8_t* ms_enc_pw;
+	uint8_t* ms_iv_out;
+	size_t ms_iv_len;
+	uint8_t* ms_web_mac;
+	size_t ms_web_mac_len;
+	uint8_t* ms_uname_mac;
+	uint8_t* ms_pw_mac;
+	size_t ms_mac_len;
+} ms_encrypt_credentials_t;
+
+typedef struct ms_check_return_creds_t {
+	uint8_t* ms_create_pw;
+	size_t ms_buf_len;
+	uint8_t* ms_v_web;
+	uint8_t* ms_v_uname;
+	uint8_t* ms_v_pw;
+	uint8_t* ms_iv;
+	size_t ms_iv_len;
+	uint8_t* ms_tmp_name;
+	uint8_t* ms_web_mac;
+	size_t ms_web_mac_len;
+	uint8_t* ms_uname_mac;
+	uint8_t* ms_pw_mac;
+	size_t ms_mac_len;
+	uint8_t* ms_dec_web;
+	uint8_t* ms_dec_uname;
+	uint8_t* ms_dec_pw;
+	uint8_t* ms_found;
+	size_t ms_found_len;
+} ms_check_return_creds_t;
+
 typedef struct ms_seal_t {
 	sgx_status_t ms_retval;
 	uint8_t* ms_plaintext;
@@ -251,6 +290,419 @@ err:
 	return status;
 }
 
+static sgx_status_t SGX_CDECL sgx_encrypt_credentials(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_encrypt_credentials_t));
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+	ms_encrypt_credentials_t* ms = SGX_CAST(ms_encrypt_credentials_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	uint8_t* _tmp_create_pw = ms->ms_create_pw;
+	size_t _tmp_buf_len = ms->ms_buf_len;
+	size_t _len_create_pw = _tmp_buf_len;
+	uint8_t* _in_create_pw = NULL;
+	uint8_t* _tmp_cur_web = ms->ms_cur_web;
+	size_t _len_cur_web = _tmp_buf_len;
+	uint8_t* _in_cur_web = NULL;
+	uint8_t* _tmp_cur_usr = ms->ms_cur_usr;
+	size_t _len_cur_usr = _tmp_buf_len;
+	uint8_t* _in_cur_usr = NULL;
+	uint8_t* _tmp_cur_pw = ms->ms_cur_pw;
+	size_t _len_cur_pw = _tmp_buf_len;
+	uint8_t* _in_cur_pw = NULL;
+	uint8_t* _tmp_enc_web = ms->ms_enc_web;
+	size_t _len_enc_web = _tmp_buf_len;
+	uint8_t* _in_enc_web = NULL;
+	uint8_t* _tmp_enc_uname = ms->ms_enc_uname;
+	size_t _len_enc_uname = _tmp_buf_len;
+	uint8_t* _in_enc_uname = NULL;
+	uint8_t* _tmp_enc_pw = ms->ms_enc_pw;
+	size_t _len_enc_pw = _tmp_buf_len;
+	uint8_t* _in_enc_pw = NULL;
+	uint8_t* _tmp_iv_out = ms->ms_iv_out;
+	size_t _tmp_iv_len = ms->ms_iv_len;
+	size_t _len_iv_out = _tmp_iv_len;
+	uint8_t* _in_iv_out = NULL;
+	uint8_t* _tmp_web_mac = ms->ms_web_mac;
+	size_t _tmp_web_mac_len = ms->ms_web_mac_len;
+	size_t _len_web_mac = _tmp_web_mac_len;
+	uint8_t* _in_web_mac = NULL;
+	uint8_t* _tmp_uname_mac = ms->ms_uname_mac;
+	size_t _tmp_mac_len = ms->ms_mac_len;
+	size_t _len_uname_mac = _tmp_mac_len;
+	uint8_t* _in_uname_mac = NULL;
+	uint8_t* _tmp_pw_mac = ms->ms_pw_mac;
+	size_t _len_pw_mac = _tmp_mac_len;
+	uint8_t* _in_pw_mac = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_create_pw, _len_create_pw);
+	CHECK_UNIQUE_POINTER(_tmp_cur_web, _len_cur_web);
+	CHECK_UNIQUE_POINTER(_tmp_cur_usr, _len_cur_usr);
+	CHECK_UNIQUE_POINTER(_tmp_cur_pw, _len_cur_pw);
+	CHECK_UNIQUE_POINTER(_tmp_enc_web, _len_enc_web);
+	CHECK_UNIQUE_POINTER(_tmp_enc_uname, _len_enc_uname);
+	CHECK_UNIQUE_POINTER(_tmp_enc_pw, _len_enc_pw);
+	CHECK_UNIQUE_POINTER(_tmp_iv_out, _len_iv_out);
+	CHECK_UNIQUE_POINTER(_tmp_web_mac, _len_web_mac);
+	CHECK_UNIQUE_POINTER(_tmp_uname_mac, _len_uname_mac);
+	CHECK_UNIQUE_POINTER(_tmp_pw_mac, _len_pw_mac);
+
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+
+	if (_tmp_create_pw != NULL && _len_create_pw != 0) {
+		_in_create_pw = (uint8_t*)malloc(_len_create_pw);
+		if (_in_create_pw == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_create_pw, _tmp_create_pw, _len_create_pw);
+	}
+	if (_tmp_cur_web != NULL && _len_cur_web != 0) {
+		_in_cur_web = (uint8_t*)malloc(_len_cur_web);
+		if (_in_cur_web == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_cur_web, _tmp_cur_web, _len_cur_web);
+	}
+	if (_tmp_cur_usr != NULL && _len_cur_usr != 0) {
+		_in_cur_usr = (uint8_t*)malloc(_len_cur_usr);
+		if (_in_cur_usr == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_cur_usr, _tmp_cur_usr, _len_cur_usr);
+	}
+	if (_tmp_cur_pw != NULL && _len_cur_pw != 0) {
+		_in_cur_pw = (uint8_t*)malloc(_len_cur_pw);
+		if (_in_cur_pw == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_cur_pw, _tmp_cur_pw, _len_cur_pw);
+	}
+	if (_tmp_enc_web != NULL && _len_enc_web != 0) {
+		if ((_in_enc_web = (uint8_t*)malloc(_len_enc_web)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_enc_web, 0, _len_enc_web);
+	}
+	if (_tmp_enc_uname != NULL && _len_enc_uname != 0) {
+		if ((_in_enc_uname = (uint8_t*)malloc(_len_enc_uname)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_enc_uname, 0, _len_enc_uname);
+	}
+	if (_tmp_enc_pw != NULL && _len_enc_pw != 0) {
+		if ((_in_enc_pw = (uint8_t*)malloc(_len_enc_pw)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_enc_pw, 0, _len_enc_pw);
+	}
+	if (_tmp_iv_out != NULL && _len_iv_out != 0) {
+		if ((_in_iv_out = (uint8_t*)malloc(_len_iv_out)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_iv_out, 0, _len_iv_out);
+	}
+	if (_tmp_web_mac != NULL && _len_web_mac != 0) {
+		if ((_in_web_mac = (uint8_t*)malloc(_len_web_mac)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_web_mac, 0, _len_web_mac);
+	}
+	if (_tmp_uname_mac != NULL && _len_uname_mac != 0) {
+		if ((_in_uname_mac = (uint8_t*)malloc(_len_uname_mac)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_uname_mac, 0, _len_uname_mac);
+	}
+	if (_tmp_pw_mac != NULL && _len_pw_mac != 0) {
+		if ((_in_pw_mac = (uint8_t*)malloc(_len_pw_mac)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_pw_mac, 0, _len_pw_mac);
+	}
+
+	encrypt_credentials(_in_create_pw, _tmp_buf_len, _in_cur_web, _in_cur_usr, _in_cur_pw, _in_enc_web, _in_enc_uname, _in_enc_pw, _in_iv_out, _tmp_iv_len, _in_web_mac, _tmp_web_mac_len, _in_uname_mac, _in_pw_mac, _tmp_mac_len);
+err:
+	if (_in_create_pw) free(_in_create_pw);
+	if (_in_cur_web) free(_in_cur_web);
+	if (_in_cur_usr) free(_in_cur_usr);
+	if (_in_cur_pw) free(_in_cur_pw);
+	if (_in_enc_web) {
+		memcpy(_tmp_enc_web, _in_enc_web, _len_enc_web);
+		free(_in_enc_web);
+	}
+	if (_in_enc_uname) {
+		memcpy(_tmp_enc_uname, _in_enc_uname, _len_enc_uname);
+		free(_in_enc_uname);
+	}
+	if (_in_enc_pw) {
+		memcpy(_tmp_enc_pw, _in_enc_pw, _len_enc_pw);
+		free(_in_enc_pw);
+	}
+	if (_in_iv_out) {
+		memcpy(_tmp_iv_out, _in_iv_out, _len_iv_out);
+		free(_in_iv_out);
+	}
+	if (_in_web_mac) {
+		memcpy(_tmp_web_mac, _in_web_mac, _len_web_mac);
+		free(_in_web_mac);
+	}
+	if (_in_uname_mac) {
+		memcpy(_tmp_uname_mac, _in_uname_mac, _len_uname_mac);
+		free(_in_uname_mac);
+	}
+	if (_in_pw_mac) {
+		memcpy(_tmp_pw_mac, _in_pw_mac, _len_pw_mac);
+		free(_in_pw_mac);
+	}
+
+	return status;
+}
+
+static sgx_status_t SGX_CDECL sgx_check_return_creds(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_check_return_creds_t));
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+	ms_check_return_creds_t* ms = SGX_CAST(ms_check_return_creds_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	uint8_t* _tmp_create_pw = ms->ms_create_pw;
+	size_t _tmp_buf_len = ms->ms_buf_len;
+	size_t _len_create_pw = _tmp_buf_len;
+	uint8_t* _in_create_pw = NULL;
+	uint8_t* _tmp_v_web = ms->ms_v_web;
+	size_t _len_v_web = _tmp_buf_len;
+	uint8_t* _in_v_web = NULL;
+	uint8_t* _tmp_v_uname = ms->ms_v_uname;
+	size_t _len_v_uname = _tmp_buf_len;
+	uint8_t* _in_v_uname = NULL;
+	uint8_t* _tmp_v_pw = ms->ms_v_pw;
+	size_t _len_v_pw = _tmp_buf_len;
+	uint8_t* _in_v_pw = NULL;
+	uint8_t* _tmp_iv = ms->ms_iv;
+	size_t _tmp_iv_len = ms->ms_iv_len;
+	size_t _len_iv = _tmp_iv_len;
+	uint8_t* _in_iv = NULL;
+	uint8_t* _tmp_tmp_name = ms->ms_tmp_name;
+	size_t _len_tmp_name = _tmp_buf_len;
+	uint8_t* _in_tmp_name = NULL;
+	uint8_t* _tmp_web_mac = ms->ms_web_mac;
+	size_t _tmp_web_mac_len = ms->ms_web_mac_len;
+	size_t _len_web_mac = _tmp_web_mac_len;
+	uint8_t* _in_web_mac = NULL;
+	uint8_t* _tmp_uname_mac = ms->ms_uname_mac;
+	size_t _tmp_mac_len = ms->ms_mac_len;
+	size_t _len_uname_mac = _tmp_mac_len;
+	uint8_t* _in_uname_mac = NULL;
+	uint8_t* _tmp_pw_mac = ms->ms_pw_mac;
+	size_t _len_pw_mac = _tmp_mac_len;
+	uint8_t* _in_pw_mac = NULL;
+	uint8_t* _tmp_dec_web = ms->ms_dec_web;
+	size_t _len_dec_web = _tmp_buf_len;
+	uint8_t* _in_dec_web = NULL;
+	uint8_t* _tmp_dec_uname = ms->ms_dec_uname;
+	size_t _len_dec_uname = _tmp_buf_len;
+	uint8_t* _in_dec_uname = NULL;
+	uint8_t* _tmp_dec_pw = ms->ms_dec_pw;
+	size_t _len_dec_pw = _tmp_buf_len;
+	uint8_t* _in_dec_pw = NULL;
+	uint8_t* _tmp_found = ms->ms_found;
+	size_t _tmp_found_len = ms->ms_found_len;
+	size_t _len_found = _tmp_found_len;
+	uint8_t* _in_found = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_create_pw, _len_create_pw);
+	CHECK_UNIQUE_POINTER(_tmp_v_web, _len_v_web);
+	CHECK_UNIQUE_POINTER(_tmp_v_uname, _len_v_uname);
+	CHECK_UNIQUE_POINTER(_tmp_v_pw, _len_v_pw);
+	CHECK_UNIQUE_POINTER(_tmp_iv, _len_iv);
+	CHECK_UNIQUE_POINTER(_tmp_tmp_name, _len_tmp_name);
+	CHECK_UNIQUE_POINTER(_tmp_web_mac, _len_web_mac);
+	CHECK_UNIQUE_POINTER(_tmp_uname_mac, _len_uname_mac);
+	CHECK_UNIQUE_POINTER(_tmp_pw_mac, _len_pw_mac);
+	CHECK_UNIQUE_POINTER(_tmp_dec_web, _len_dec_web);
+	CHECK_UNIQUE_POINTER(_tmp_dec_uname, _len_dec_uname);
+	CHECK_UNIQUE_POINTER(_tmp_dec_pw, _len_dec_pw);
+	CHECK_UNIQUE_POINTER(_tmp_found, _len_found);
+
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+
+	if (_tmp_create_pw != NULL && _len_create_pw != 0) {
+		_in_create_pw = (uint8_t*)malloc(_len_create_pw);
+		if (_in_create_pw == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_create_pw, _tmp_create_pw, _len_create_pw);
+	}
+	if (_tmp_v_web != NULL && _len_v_web != 0) {
+		_in_v_web = (uint8_t*)malloc(_len_v_web);
+		if (_in_v_web == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_v_web, _tmp_v_web, _len_v_web);
+	}
+	if (_tmp_v_uname != NULL && _len_v_uname != 0) {
+		_in_v_uname = (uint8_t*)malloc(_len_v_uname);
+		if (_in_v_uname == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_v_uname, _tmp_v_uname, _len_v_uname);
+	}
+	if (_tmp_v_pw != NULL && _len_v_pw != 0) {
+		_in_v_pw = (uint8_t*)malloc(_len_v_pw);
+		if (_in_v_pw == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_v_pw, _tmp_v_pw, _len_v_pw);
+	}
+	if (_tmp_iv != NULL && _len_iv != 0) {
+		_in_iv = (uint8_t*)malloc(_len_iv);
+		if (_in_iv == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_iv, _tmp_iv, _len_iv);
+	}
+	if (_tmp_tmp_name != NULL && _len_tmp_name != 0) {
+		_in_tmp_name = (uint8_t*)malloc(_len_tmp_name);
+		if (_in_tmp_name == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_tmp_name, _tmp_tmp_name, _len_tmp_name);
+	}
+	if (_tmp_web_mac != NULL && _len_web_mac != 0) {
+		_in_web_mac = (uint8_t*)malloc(_len_web_mac);
+		if (_in_web_mac == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_web_mac, _tmp_web_mac, _len_web_mac);
+	}
+	if (_tmp_uname_mac != NULL && _len_uname_mac != 0) {
+		_in_uname_mac = (uint8_t*)malloc(_len_uname_mac);
+		if (_in_uname_mac == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_uname_mac, _tmp_uname_mac, _len_uname_mac);
+	}
+	if (_tmp_pw_mac != NULL && _len_pw_mac != 0) {
+		_in_pw_mac = (uint8_t*)malloc(_len_pw_mac);
+		if (_in_pw_mac == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_pw_mac, _tmp_pw_mac, _len_pw_mac);
+	}
+	if (_tmp_dec_web != NULL && _len_dec_web != 0) {
+		if ((_in_dec_web = (uint8_t*)malloc(_len_dec_web)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_dec_web, 0, _len_dec_web);
+	}
+	if (_tmp_dec_uname != NULL && _len_dec_uname != 0) {
+		if ((_in_dec_uname = (uint8_t*)malloc(_len_dec_uname)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_dec_uname, 0, _len_dec_uname);
+	}
+	if (_tmp_dec_pw != NULL && _len_dec_pw != 0) {
+		if ((_in_dec_pw = (uint8_t*)malloc(_len_dec_pw)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_dec_pw, 0, _len_dec_pw);
+	}
+	if (_tmp_found != NULL && _len_found != 0) {
+		if ((_in_found = (uint8_t*)malloc(_len_found)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_found, 0, _len_found);
+	}
+
+	check_return_creds(_in_create_pw, _tmp_buf_len, _in_v_web, _in_v_uname, _in_v_pw, _in_iv, _tmp_iv_len, _in_tmp_name, _in_web_mac, _tmp_web_mac_len, _in_uname_mac, _in_pw_mac, _tmp_mac_len, _in_dec_web, _in_dec_uname, _in_dec_pw, _in_found, _tmp_found_len);
+err:
+	if (_in_create_pw) free(_in_create_pw);
+	if (_in_v_web) free(_in_v_web);
+	if (_in_v_uname) free(_in_v_uname);
+	if (_in_v_pw) free(_in_v_pw);
+	if (_in_iv) free(_in_iv);
+	if (_in_tmp_name) free(_in_tmp_name);
+	if (_in_web_mac) free(_in_web_mac);
+	if (_in_uname_mac) free(_in_uname_mac);
+	if (_in_pw_mac) free(_in_pw_mac);
+	if (_in_dec_web) {
+		memcpy(_tmp_dec_web, _in_dec_web, _len_dec_web);
+		free(_in_dec_web);
+	}
+	if (_in_dec_uname) {
+		memcpy(_tmp_dec_uname, _in_dec_uname, _len_dec_uname);
+		free(_in_dec_uname);
+	}
+	if (_in_dec_pw) {
+		memcpy(_tmp_dec_pw, _in_dec_pw, _len_dec_pw);
+		free(_in_dec_pw);
+	}
+	if (_in_found) {
+		memcpy(_tmp_found, _in_found, _len_found);
+		free(_in_found);
+	}
+
+	return status;
+}
+
 static sgx_status_t SGX_CDECL sgx_seal(void* pms)
 {
 	CHECK_REF_POINTER(pms, sizeof(ms_seal_t));
@@ -363,12 +815,14 @@ err:
 
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[4];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[6];
 } g_ecall_table = {
-	4,
+	6,
 	{
 		{(void*)(uintptr_t)sgx_create_user, 0},
 		{(void*)(uintptr_t)sgx_check_user, 0},
+		{(void*)(uintptr_t)sgx_encrypt_credentials, 0},
+		{(void*)(uintptr_t)sgx_check_return_creds, 0},
 		{(void*)(uintptr_t)sgx_seal, 0},
 		{(void*)(uintptr_t)sgx_unseal, 0},
 	}
@@ -376,11 +830,11 @@ SGX_EXTERNC const struct {
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[1][4];
+	uint8_t entry_table[1][6];
 } g_dyn_entry_table = {
 	1,
 	{
-		{0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, },
 	}
 };
 

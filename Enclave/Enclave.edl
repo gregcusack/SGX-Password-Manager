@@ -3,27 +3,18 @@ enclave {
 
     trusted {
         /* define ECALLs here. */
-        /*public int encrypt(int val);*/
-		/*public void encrypt_str([in, out, size=len] char *buf, size_t len);*/
 
         public void create_user([in, size=pw_len] uint8_t *create_pw, size_t pw_len, [out, size=cipher_pword_len] uint8_t *cipher_pword, size_t cipher_pword_len, [out, size=iv_len] uint8_t *iv, size_t iv_len, [out, size=mac_len] uint8_t *mac, size_t mac_len);
 
         public void check_user([in, size=pw_len] uint8_t *login_attempt, size_t pw_len, [in, size=v_pword_len] uint8_t *v_pword, size_t v_pword_len, [in, size=iv_len] uint8_t *iv, size_t iv_len, [in, size=mac_len] uint8_t *mac, size_t mac_len, [out, size=found_len] uint8_t *found, size_t found_len);
 
+        public void encrypt_credentials([in, size=buf_len] uint8_t *create_pw, size_t buf_len, [in, size=buf_len] uint8_t *cur_web, [in, size=buf_len] uint8_t *cur_usr, [in, size=buf_len] uint8_t *cur_pw, [out, size=buf_len] uint8_t *enc_web, [out, size=buf_len] uint8_t *enc_uname, [out, size=buf_len] uint8_t *enc_pw, [out, size=iv_len] uint8_t *iv_out, size_t iv_len, [out, size=web_mac_len] uint8_t *web_mac, size_t web_mac_len, [out, size=mac_len] uint8_t *uname_mac, [out, size=mac_len] uint8_t *pw_mac, size_t mac_len);
+
+        public void check_return_creds([in, size=buf_len] uint8_t *create_pw, size_t buf_len, [in, size=buf_len] uint8_t *v_web, [in, size=buf_len] uint8_t *v_uname, [in, size=buf_len] uint8_t *v_pw, [in, size=iv_len] uint8_t *iv, size_t iv_len, [in, size=buf_len] uint8_t *tmp_name, [in, size=web_mac_len] uint8_t *web_mac, size_t web_mac_len, [in, size=mac_len] uint8_t *uname_mac, [in, size=mac_len] uint8_t *pw_mac, size_t mac_len, [out, size=buf_len] uint8_t *dec_web, [out, size=buf_len] uint8_t *dec_uname, [out, size=buf_len] uint8_t *dec_pw, [out, size=found_len] uint8_t *found, size_t found_len);
+        
 
 
 
-        /*
-        public void encrypt_str([in, size=in_len] uint8_t *in_buf, size_t in_len, [out, size=out_len] uint8_t *out_buf, size_t out_len);
-
-        public void decrypt_str([in, size=in_len] uint8_t *in_buf, size_t in_len, [out, size=out_len] uint8_t *out_buf, size_t out_len);
-        */
-        /*
-        public void encrypt_str([in, size=len] char *buf, size_t len);
-        public void get_str([out, size=len] uint8_t *o_buf, size_t len);
-        public void decrypt_str([in, size=len] uint8_t *buf, size_t len);
-        public void get_dec_str([out, size=len] uint8_t *buf, size_t len);
-        */
     };
 
     untrusted {

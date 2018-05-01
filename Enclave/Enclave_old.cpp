@@ -162,20 +162,6 @@ void check_return_creds(uint8_t *create_pw, size_t buf_len,
 		return;
 	}
 
-	uint8_t mac_hold[web_mac_len];
-	memcpy(mac_hold, tmp_mac, mac_len);
-	mac_hold[web_mac_len-1] = '\0';
-
-	sgx_aes_gcm_128bit_tag_t new_mac_hold[mac_len];
-	memcpy(new_mac_hold, mac_hold, mac_len);
-
-	status = sgx_rijndael128GCM_decrypt(key, enc_tmp, buf_len, enc_tmp, iv, iv_len, NULL, 0, new_mac_hold);
-	if (status != SGX_SUCCESS) {
-		ocall_print("2: Error, encrypt check_return_creds()");
-		//ocall_print((const char*)status);
-		return;
-	}
-
 
 
 }

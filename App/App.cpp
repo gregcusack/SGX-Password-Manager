@@ -26,6 +26,9 @@
 #define MAX_BUFF_LEN 32
 #define CONCAT_LEN 60
 #define MAC_LEN 16
+#define WEB_MAC_LEN 17
+
+#define ITERATIONS 1
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -56,6 +59,18 @@ bool read_vault(vault *vault) {
 		return false;
 	}
 	fclose(infile);
+	return true;
+}
+
+bool write_vault(vault *vault) {
+	std::cout << "accounts in vault: " << vault->num_accounts << std::endl;
+	FILE *f = fopen("test.dat", "w+");
+	if(f == NULL) {
+		std::cerr << "Error in file open (write_vault())" << std::endl;
+		exit(1);
+	}
+	fwrite(vault, sizeof(struct vault), 1, f);
+	fclose(f);
 	return true;
 }
 
@@ -113,9 +128,7 @@ int main(int argc, char** argv) {
 	memcpy(login_password_test, create_pw, MAX_BUFF_LEN-1);
 	create_user(global_eid, create_pw, MAX_BUFF_LEN, cipher_pw, MAX_BUFF_LEN, iv, IV_SIZE, mac, MAC_LEN);
 
-	//mac = (char*)mac;
-	mac[MAC_LEN-1] = '\0';
-	iv[IV_SIZE-1] = '\0';
+	//iv[IV_SIZE-1] = '\0';
 
 	if(!vault_store_user(&vault, cipher_pw, iv, mac)) {
 		std::cerr << "Bad store!" << std::endl;
@@ -124,7 +137,7 @@ int main(int argc, char** argv) {
 	
 	uint8_t found[1];
 	check_user(global_eid, login_password_test, MAX_BUFF_LEN, vault.m_pword, MAX_BUFF_LEN, vault.m_iv, IV_SIZE, vault.m_mac, MAC_LEN, found, sizeof(found));
-	if(found[0] != 0x01) {
+	if(!found) {
 		std::cerr << "user not found!" << std::endl;
 		exit(1);
 	}
@@ -132,6 +145,79 @@ int main(int argc, char** argv) {
 		std::cout << "User Found!" << std::endl;
 	}
 
+	/***** AFTER LOGIN *****/
+	uint8_t current_web[MAX_BUFF_LEN];
+	uint8_t current_user[MAX_BUFF_LEN];
+	uint8_t current_pw[MAX_BUFF_LEN];
+	uint8_t tmp_name[MAX_BUFF_LEN];
+	website enc_usr_cred;
+	website usr_ret;
+	unsigned int loop_count = 0;
+	double create_time, reat_time;
+	std::cout << "PASSWORD_SIZE,ADD_TIME,GET_TIME" << std::endl;
+	int i,k,itr;
+	for(k = 28; k < MAX_BUFF_LEN; k+=4) {
+		for(itr = 0; itr < ITERATIONS; itr++) {
+			memset(current_web, 0, MAX_BUFF_LEN);
+			memset(tmp_name, 0, MAX_BUFF_LEN);
+			memset(current_user, 0, MAX_BUFF_LEN);
+			memset(current_pw, 0, MAX_BUFF_LEN);
+			sprintf((char*)current_web, "test%d_%d", itr, k);
+			sprintf((char*)tmp_name, "test%d_%d", itr, k);
+			sprintf((char*)current_user, "test%d_%d", itr, k);
+			gen_random_password(current_pw, k);
+
+			current_web[MAX_BUFF_LEN-1] = '\0';
+			tmp_name[MAX_BUFF_LEN-1] = '\0';
+			current_user[MAX_BUFF_LEN-1] = '\0';
+
+			bool success;
+			uint8_t cred_found[] = {0};
+			if(vault.num_accounts >= MAX_ACCOUNTS) {
+				std::cerr << "MAX_ACCOUNTS LIMIT REACHED!" << std::endl;
+				exit(1);
+			}
+			std::cout << "here" << std::endl;
+			//TODO: BEGIN CLOCK HERE
+			encrypt_credentials(global_eid, create_pw, MAX_BUFF_LEN,
+				current_web, current_user, current_pw,
+				enc_usr_cred.web_name, enc_usr_cred.credentials.a_uname, 
+				enc_usr_cred.credentials.a_pword, enc_usr_cred.web_iv, IV_SIZE,
+				enc_usr_cred.web_mac, WEB_MAC_LEN, enc_usr_cred.credentials.uname_mac, 
+				enc_usr_cred.credentials.pw_mac, MAC_LEN);
+			vault.accounts[vault.num_accounts] = enc_usr_cred;
+			vault.num_accounts++;
+			write_vault(&vault);
+/*
+			std::cout << "cur_web: " << current_web << std::endl;
+			std::cout << "cur_user: " << current_user << std::endl;
+			std::cout << "cur_pw: " << current_pw << std::endl;
+
+			std::cout << "v_web: " << vault.accounts[0].web_name << std::endl;
+			std::cout << "enc_web: " << enc_usr_cred.web_name << std::endl;
+			std::cout << "v_iv: " << vault.accounts[0].web_iv << std::endl;
+			//std::cout << "iv: " << enc_usr_cred.web_iv << std::endl;
+*/
+			/***** CHECK AND RETURN CREDENTIALS *****/
+			unsigned int i;
+			for(i = 0; i < vault.num_accounts; i++) {
+				check_return_creds(global_eid, create_pw, MAX_BUFF_LEN,
+					vault.accounts[i].web_name,
+					vault.accounts[i].credentials.a_uname, 
+					vault.accounts[i].credentials.a_pword,
+					vault.accounts[i].web_iv, IV_SIZE, tmp_name,
+					vault.accounts[i].web_mac, WEB_MAC_LEN,
+					vault.accounts[i].credentials.uname_mac,
+					vault.accounts[i].credentials.pw_mac,
+					MAC_LEN, usr_ret.web_name,
+					usr_ret.credentials.a_uname,
+					usr_ret.credentials.a_pword,
+					found, sizeof(found));
+			}
+
+
+		}
+	}
 
 	return 0;	
 }
