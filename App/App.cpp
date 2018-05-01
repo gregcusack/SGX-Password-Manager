@@ -1,17 +1,7 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <sys/time.h>
 #include <iostream>
 #include <Enclave_u.h>
 #include "sgx_urts.h"
 #include "sgx_utils/sgx_utils.h"
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <sys/time.h>
-#include <string.h>
 
 #ifndef USERCLASS_H
 #define USERCLASS_H
@@ -24,7 +14,6 @@
 #endif
 
 #define MAX_BUFF_LEN 32
-#define CONCAT_LEN 60
 #define MAC_LEN 16
 
 #define ITERATIONS 25
@@ -62,7 +51,6 @@ bool read_vault(vault *vault) {
 }
 
 bool write_vault(vault *vault) {
-	//std::cout << "accounts in vault: " << vault->num_accounts << std::endl;
 	FILE *f = fopen("test.dat", "w+");
 	if(f == NULL) {
 		std::cerr << "Error in file open (write_vault())" << std::endl;
@@ -97,7 +85,7 @@ void gen_random_password(uint8_t *s, const unsigned int len) {
 
 int main(int argc, char** argv) {
 	remove("test.dat");
-	//srand(time(NULL));
+	srand(time(NULL));
 	vault vault;
 	create_vault();
 	if(!read_vault(&vault)) {
@@ -115,7 +103,6 @@ int main(int argc, char** argv) {
 	uint8_t iv[IV_SIZE];
 	uint8_t mac[MAC_LEN];
 	uint8_t login_password_test[MAX_BUFF_LEN];
-	uint8_t cipher_str[CONCAT_LEN];
 	uint8_t decrypted_str[MAX_BUFF_LEN];
 		
 	if(vault.full) {
@@ -127,8 +114,6 @@ int main(int argc, char** argv) {
 	memcpy(login_password_test, create_pw, MAX_BUFF_LEN-1);
 	create_user(global_eid, create_pw, MAX_BUFF_LEN, cipher_pw, MAX_BUFF_LEN, iv, IV_SIZE, mac, MAC_LEN);
 
-	//iv[IV_SIZE-1] = '\0';
-
 	if(!vault_store_user(&vault, cipher_pw, iv, mac)) {
 		std::cerr << "Bad store!" << std::endl;
 		exit(1);
@@ -136,7 +121,7 @@ int main(int argc, char** argv) {
 	
 	uint8_t found[1];
 	check_user(global_eid, login_password_test, MAX_BUFF_LEN, vault.m_pword, MAX_BUFF_LEN, vault.m_iv, IV_SIZE, vault.m_mac, MAC_LEN, found, sizeof(found));
-	if(!found) {
+	if(found[0] == 0x00) {
 		std::cerr << "user not found!" << std::endl;
 		exit(1);
 	}
@@ -167,10 +152,6 @@ int main(int argc, char** argv) {
 			sprintf((char*)current_user, "test%d_%d", itr, k);
 			gen_random_password(current_pw, k);
 
-			//current_web[MAX_BUFF_LEN-1] = '\0';
-			//tmp_name[MAX_BUFF_LEN-1] = '\0';
-			//current_user[MAX_BUFF_LEN-1] = '\0';
-
 			bool success;
 			uint8_t cred_found[1];
 			cred_found[0] = 0x00;
@@ -178,7 +159,6 @@ int main(int argc, char** argv) {
 				std::cerr << "MAX_ACCOUNTS LIMIT REACHED!" << std::endl;
 				exit(1);
 			}
-			//std::cout << "current web to store: " << current_web << std::endl;
 			//TODO: BEGIN CLOCK HERE
 			begin = clock();
 			encrypt_credentials(global_eid, create_pw, MAX_BUFF_LEN,
@@ -192,7 +172,6 @@ int main(int argc, char** argv) {
 			write_vault(&vault);
 			end = clock();
 			create_time = ((double)end-begin)/CLOCKS_PER_SEC;
-			//std::cout << "num accnts: " << vault.num_accounts << std::endl;
 			/***** CHECK AND RETURN CREDENTIALS *****/
 			unsigned int i;
 			begin = clock();
@@ -210,25 +189,17 @@ int main(int argc, char** argv) {
 					usr_ret.credentials.a_pword,
 					cred_found, sizeof(cred_found));
 
-				//std::cout << "web_name: " << usr_ret.web_name << std::endl;
-				
-				//std::cout << "i: " << i << std::endl;
 				if(cred_found[0] == 0x01) {
-					//std::cout << "cred found: " << cred_found[0] << std::endl;
 					break;
 				}
 			}
 			end = clock();
 			read_time = ((double)end-begin)/CLOCKS_PER_SEC;
-			//std::cout << cred_found << std::endl;
 			if(cred_found[0] == 0x00) {
 				std::cerr << "ERROR: Data not found!" << std::endl;
 				exit(1);
 			}
 			std::cout << k << "," << create_time << "," << read_time << std::endl;
-			//std::cout << "k: " << k << std::endl;
-			//std::cout << "GOT CREDS!" << std::endl;
-			//std::cout << k << "," << crea
 
 
 		}
